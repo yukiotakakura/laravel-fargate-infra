@@ -59,13 +59,9 @@ resource "aws_lb_listener" "https" {
 
   # リクエストを受付したときのデフォルトのアクションを指定
   default_action {
-    type = "fixed-response"
+    type = "forward"
 
-    fixed_response {
-      content_type = "text/plain"
-      message_body = "Fixed response content"
-      status_code = "200"
-    }
+    target_group_arn = aws_lb_target_group.foobar.arn
   }
 }
 
@@ -91,5 +87,50 @@ resource "aws_lb_listener" "redirect_http_to_https" {
       protocol    = "HTTPS"
       status_code = "HTTP_301"
     }
+  }
+}
+
+/*
+ * ターゲットグループの作成
+ *
+*/
+resource "aws_lb_target_group" "foobar" {
+  name = "${local.name_prefix}-foobar"
+
+  # タスクを解除する前にALBが待機する時間を指定します。自動デプロイの時間を短くしたいので60秒とする
+  deregistration_delay = 60
+  port                 = 80
+  protocol             = "HTTP"
+  target_type          = "ip"
+  vpc_id               = data.terraform_remote_state.network_main.outputs.vpc_this_id
+
+  # ヘルスチェック:サーバーが生きているかどうかのチェックするための設定
+  health_check {
+    # サーバー正常であると見なされるまでに、必要なヘルスチェックの連続回数
+    healthy_threshold   = 2
+
+    # ヘルスチェックのインターバルを秒で指定
+    interval            = 30
+
+    # どんなステータスコードが返ってきたら、正常とみなすかを指定
+    matcher             = 200
+
+    # ヘルスチェックで指定するパスを指定 ※完全ログイン製のアプリの場合は、注意
+    path                = "/"
+
+    # ヘルスチェックで使用するポート番号を指定
+    # 「traffic-port」を指定すると、ターゲットがALBからのトラフィックを受信するポートが、ヘルスチェックでも使用される
+    port                = "traffic-port"
+    protocol            = "HTTP"
+
+    # ここで指定した秒数の間、ターゲットからのレスポンスがないと、ヘルスチェックが失敗と見なされます。
+    timeout             = 5
+
+    # サーバー異常であると見なされるまでに、必要なヘルスチェックの連続回数
+    unhealthy_threshold = 2
+  }
+
+  tags = {
+    Name = "${local.name_prefix}-foobar"
   }
 }
