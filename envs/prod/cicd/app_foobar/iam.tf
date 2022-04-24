@@ -110,7 +110,14 @@ resource "aws_iam_role_policy" "ecs" {
           "Resource" : [
             data.aws_ecs_service.this.arn
           ]
-        }
+        },
+        {
+          "Effect" : "Allow",
+          "Action" : [
+            "s3:PutObject"
+          ],
+          "Resource" : "${data.aws_s3_bucket.env_file.arn}/*"
+        },
       ]
     }
   )
