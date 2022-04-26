@@ -13,6 +13,13 @@ output "security_group_vpc_id" {
 }
 
 /*
+ * セキュリティグループ(rds)
+*/
+output "security_group_db_foobar_id" {
+  value = aws_security_group.db_foobar.id
+}
+
+/*
  * サブネットID(公開)
 */
 output "subnet_public" {
@@ -33,4 +40,12 @@ output "subnet_private" {
 */
 output "vpc_this_id" {
   value = aws_vpc.this.id
+}
+
+/*
+ * RDSのサブネットID
+ * ターゲットグループの作成にあたり、VPCのIDが必要
+*/
+output "db_subnet_group_this_id" {
+  value = aws_db_subnet_group.this.id
 }
