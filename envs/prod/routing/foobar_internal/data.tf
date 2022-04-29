@@ -18,3 +18,13 @@ data "terraform_remote_state" "db_foobar" {
     region = "ap-northeast-1"
   }
 }
+
+data "terraform_remote_state" "cache_foobar" {
+  backend = "s3"
+
+  config = {
+    bucket = "laravel-fargate-app-tfstate-yt"
+    key    = "${local.system_name}/${local.env_name}/cache/foobar_v1.1.17.tfstate"
+    region = "ap-northeast-1"
+  }
+}
